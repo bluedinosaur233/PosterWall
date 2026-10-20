@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PosterWall Project v1",
+  "type": "object",
+  "required": [
+    "version",
+    "images"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "template": {
+          "type": "string",
+          "enum": [
+            "mosaic",
+            "grid",
+            "film",
+            "editorial"
+          ],
+          "default": "mosaic",
+          "description": "Legacy field retained on import; the editor now uses fixed size levels and ignores this value."
+        },
+        "ratio": {
+          "type": "string",
+          "enum": [
+            "portrait",
+            "square",
+            "story",
+            "landscape"
+          ],
+          "default": "portrait"
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "paper",
+            "ink",
+            "sage",
+            "blush"
+          ],
+          "default": "paper",
+          "description": "Legacy v1 field retained on import; use base.preset for the mounting background."
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 80,
+          "default": ""
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 160,
+          "default": ""
+        },
+        "eyebrow": {
+          "type": "string",
+          "maxLength": 80,
+          "default": ""
+        },
+        "signature": {
+          "type": "string",
+          "maxLength": 80,
+          "default": ""
+        },
+        "gap": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 32,
+          "default": 0,
+          "description": "Legacy import field. Current rendering ignores it and joins images without gaps."
+        },
+        "padding": {
+          "type": "number",
+          "minimum": 16,
+          "maximum": 100,
+          "default": 48
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 8,
+          "default": 4,
+          "description": "Legacy field retained on import; automatic fixed-level packing ignores this value."
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "default": 233
+        },
+        "showHeader": {
+          "type": "boolean",
+          "default": false
+        },
+        "showCaptions": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "images": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "src"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "src": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Local PNG/JPEG/WebP path or a base64 image data URL. HTTP(S), SVG, and file:// are unsupported."
+          },
+          "focusX": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Legacy crop value retained for compatibility. Subject images are shown in full; background focus still controls cover cropping."
+          },
+          "focusY": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Legacy crop value retained for compatibility. Subject images are shown in full; background focus still controls cover cropping."
+          }
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "properties": {
+        "tileRatio": {
+          "type": "string",
+          "enum": [
+            "native",
+            "portrait",
+            "landscape",
+            "square"
+          ],
+          "default": "native",
+          "description": "Web templates use portrait 2:3, landscape 3:2 or square 1:1. Native is the legacy/custom agent mode, not offered in the web editor."
+        },
+        "crop": {
+          "type": "boolean",
+          "default": false,
+          "description": "Explicit permission to crop individual sources to tileRatio. Otherwise incompatible ratios are rejected. Never clips the collage silhouette."
+        },
+        "shape": {
+          "type": "string",
+          "enum": [
+            "square",
+            "portrait",
+            "landscape",
+            "heart",
+            "circle",
+            "arch"
+          ],
+          "default": "square",
+          "description": "Outline formed by whole rectangular images, without shape masks. Sparse collections have simpler stepped outlines."
+        },
+        "scale": {
+          "type": "number",
+          "minimum": 0.3,
+          "maximum": 1,
+          "default": 0.82
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "granularity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1,
+          "description": "Exactly 1–4 distinct image sizes in a fixed web template. Incompatible counts are unavailable; sizes are never continuously stretched. Native agent layouts retain their legacy height palette."
+        },
+        "repeat": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow reusing source images. Unlocks the same fixed capacities without changing selection. Fixed templates use the first min(count, sourceCount) sources; when reuse is needed all sources are balanced within one occurrence and dispersed."
+        },
+        "count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 600,
+          "default": null,
+          "description": "Fixed mode: exact catalogue capacity, at most 200. Six stable options per family except geometrically restricted one-size rectangles. null chooses the largest capacity fitting available sources, or the smallest if none fits. Insufficient sources require repeat. Native mode retains the legacy 1-600 density budget; null uses 216 with repeat or all sources without repeat. Web imports map obsolete capacities to an available preset; all original source assets remain stored."
+        }
+      }
+    },
+    "base": {
+      "type": "object",
+      "properties": {
+        "preset": {
+          "type": "string",
+          "enum": [
+            "none",
+            "white",
+            "paper",
+            "black",
+            "gallery"
+          ],
+          "default": "white",
+          "description": "none exports transparent PNG; ignores mat, shadow and background."
+        },
+        "mat": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 80,
+          "default": 0,
+          "description": "Legacy fixed mounting margin, retained for older projects and CLI. The editor uses subject.scale to control whitespace and does not expose a mat slider."
+        },
+        "shadow": {
+          "type": "boolean",
+          "default": false
+        },
+        "background": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "src"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "src": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Local PNG/JPEG/WebP path or a base64 image data URL. HTTP(S), SVG, and file:// are unsupported."
+                },
+                "focusX": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.5
+                },
+                "focusY": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.5
+                }
+              }
+            }
+          ],
+          "default": null
+        }
+      }
+    }
+  }
+}

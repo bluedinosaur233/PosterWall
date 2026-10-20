@@ -1,0 +1,25 @@
+node_modules/
+dist/
+output/
+.DS_Store
+*.log
+.env*
+
+# Local assets, exported projects and legacy collections
+/public/demo/
+/public/demo.json
+/examples/
+/local-data/
+/my-posters/
+*.posterwall.json
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.heic
+*.avif
+*.tif
+*.tiff
+*.bmp
+!docs/preview.png

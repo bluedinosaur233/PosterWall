@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="把喜欢的电影、动漫、游戏拼成一面墙。免费、无需登录、本地处理，轻松导出高清海报。"><meta name="theme-color" content="#ffffff"><title>PosterWall</title><link rel="icon" href="./public/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./src/styles.css"><script type="module" src="./src/app.js"></script></head>
+<body>
+<header class="app-header"><a class="brand" href="./" aria-label="PosterWall 首页"><span class="brand-icon"><i></i><i></i><i></i><i></i></span><b>PosterWall</b></a><nav aria-label="项目操作"><button id="agent-help" class="text-button">Agent</button><button id="open-project" class="text-button" aria-label="打开项目">打开<span class="project-suffix">项目</span></button><button id="save-project" class="outline-button" aria-label="保存项目">保存<span class="project-suffix">项目</span></button></nav></header>
+<main class="workspace">
+<aside class="settings-panel" aria-label="海报设置">
+  <section class="subject-section"><div class="panel-heading"><h2>拼贴主体</h2></div>
+    <div class="shape-options" role="group" aria-label="主体形状">
+      <button data-shape="square" aria-label="方形" aria-pressed="true"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3.53" y="3.53" width="5.70" height="8.56"/><rect x="10.24" y="3.53" width="5.70" height="8.56"/><rect x="3.53" y="13.84" width="5.70" height="8.56"/><rect x="10.24" y="13.84" width="5.70" height="8.56"/><rect x="3.37" y="24.27" width="3.69" height="5.54"/><rect x="3.37" y="30.81" width="3.69" height="5.54"/><rect x="8.22" y="24.27" width="8.05" height="12.07"/><rect x="18.10" y="4.10" width="5.90" height="8.85"/><rect x="24.99" y="4.10" width="5.90" height="8.85"/><rect x="18.10" y="14.69" width="5.90" height="8.85"/><rect x="24.99" y="14.69" width="5.90" height="8.85"/><rect x="32.50" y="3.72" width="3.93" height="5.90"/><rect x="32.50" y="10.62" width="3.93" height="5.90"/><rect x="32.33" y="17.51" width="4.26" height="6.40"/><rect x="17.76" y="26.15" width="6.68" height="10.02"/><rect x="25.44" y="26.15" width="6.68" height="10.02"/><rect x="33.29" y="25.77" width="3.26" height="4.88"/><rect x="33.29" y="31.66" width="3.26" height="4.88"/></svg><span>方形</span></button>
+      <button data-shape="portrait" aria-label="竖长方形" aria-pressed="false"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="10.22" y="3.39" width="3.15" height="4.72"/><rect x="13.86" y="3.39" width="3.15" height="4.72"/><rect x="10.22" y="8.80" width="6.79" height="10.19"/><rect x="17.73" y="3.53" width="6.50" height="9.76"/><rect x="17.73" y="13.97" width="3.00" height="4.50"/><rect x="21.23" y="13.97" width="3.00" height="4.50"/><rect x="24.93" y="3.53" width="4.88" height="7.32"/><rect x="24.93" y="11.34" width="4.88" height="7.32"/><rect x="10.33" y="20.16" width="2.79" height="4.18"/><rect x="10.33" y="24.84" width="2.79" height="4.18"/><rect x="13.70" y="20.16" width="5.90" height="8.86"/><rect x="10.25" y="29.95" width="4.43" height="6.64"/><rect x="15.18" y="29.95" width="4.43" height="6.64"/><rect x="20.39" y="20.09" width="4.43" height="6.64"/><rect x="25.32" y="20.09" width="4.43" height="6.64"/><rect x="20.48" y="27.67" width="2.79" height="4.18"/><rect x="20.48" y="32.35" width="2.79" height="4.18"/><rect x="23.85" y="27.67" width="5.90" height="8.86"/></svg><span>竖幅</span></button>
+      <button data-shape="landscape" aria-label="横长方形" aria-pressed="false"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3.22" y="10.49" width="4.22" height="6.33"/><rect x="3.22" y="17.32" width="4.22" height="6.33"/><rect x="8.14" y="10.49" width="5.63" height="8.44"/><rect x="8.14" y="19.61" width="2.56" height="3.85"/><rect x="11.20" y="19.61" width="2.56" height="3.85"/><rect x="3.14" y="24.59" width="3.41" height="5.12"/><rect x="7.05" y="24.78" width="3.16" height="4.74"/><rect x="10.71" y="24.78" width="3.16" height="4.74"/><rect x="14.66" y="10.63" width="6.80" height="10.21"/><rect x="22.05" y="10.63" width="3.24" height="4.85"/><rect x="22.05" y="15.99" width="3.24" height="4.85"/><rect x="14.66" y="21.78" width="5.10" height="7.65"/><rect x="20.26" y="21.78" width="5.10" height="7.65"/><rect x="26.23" y="10.63" width="3.24" height="4.85"/><rect x="26.23" y="15.99" width="3.24" height="4.85"/><rect x="30.05" y="10.63" width="6.80" height="10.21"/><rect x="26.15" y="21.78" width="5.10" height="7.65"/><rect x="31.75" y="21.78" width="5.10" height="7.65"/></svg><span>横幅</span></button>
+      <button data-shape="heart" aria-label="心形" aria-pressed="false"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="7.57" y="5.15" width="2.69" height="4.04"/><rect x="10.52" y="5.15" width="2.69" height="4.04"/><rect x="13.48" y="5.15" width="2.69" height="4.04"/><rect x="23.83" y="5.15" width="2.69" height="4.04"/><rect x="26.79" y="5.15" width="2.69" height="4.04"/><rect x="29.74" y="5.15" width="2.69" height="4.04"/><rect x="4.61" y="7.32" width="2.69" height="4.04"/><rect x="16.77" y="7.30" width="0.55" height="0.82"/><rect x="22.68" y="7.30" width="0.55" height="0.82"/><rect x="32.70" y="7.32" width="2.69" height="4.04"/><rect x="16.77" y="8.39" width="0.55" height="0.82"/><rect x="22.68" y="8.39" width="0.55" height="0.82"/><rect x="3.13" y="9.51" width="1.21" height="1.82"/><rect x="7.57" y="9.49" width="2.69" height="4.04"/><rect x="10.52" y="9.49" width="2.69" height="4.04"/><rect x="13.48" y="9.49" width="2.69" height="4.04"/><rect x="16.44" y="9.49" width="2.69" height="4.04"/><rect x="20.87" y="9.49" width="2.69" height="4.04"/><rect x="23.83" y="9.49" width="2.69" height="4.04"/><rect x="26.79" y="9.49" width="2.69" height="4.04"/><rect x="29.74" y="9.49" width="2.69" height="4.04"/><rect x="35.65" y="9.51" width="1.21" height="1.82"/><rect x="3.13" y="11.66" width="2.69" height="4.04"/><rect x="6.09" y="11.68" width="1.21" height="1.82"/><rect x="19.39" y="11.68" width="1.21" height="1.82"/><rect x="32.70" y="11.66" width="2.69" height="4.04"/><rect x="35.65" y="11.68" width="1.21" height="1.82"/><rect x="6.09" y="13.83" width="2.69" height="4.04"/><rect x="9.05" y="13.83" width="2.69" height="4.04"/><rect x="12.00" y="13.83" width="2.69" height="4.04"/><rect x="14.96" y="13.83" width="2.69" height="4.04"/><rect x="17.92" y="13.83" width="2.69" height="4.04"/><rect x="20.87" y="13.83" width="2.69" height="4.04"/><rect x="23.83" y="13.83" width="2.69" height="4.04"/><rect x="26.79" y="13.83" width="2.69" height="4.04"/><rect x="29.74" y="13.83" width="2.69" height="4.04"/><rect x="35.65" y="13.85" width="1.21" height="1.82"/><rect x="3.13" y="16.02" width="1.21" height="1.82"/><rect x="4.61" y="16.02" width="1.21" height="1.82"/><rect x="32.70" y="15.99" width="2.69" height="4.04"/><rect x="35.65" y="16.02" width="1.21" height="1.82"/><rect x="4.61" y="18.19" width="1.21" height="1.82"/><rect x="6.09" y="18.16" width="2.69" height="4.04"/><rect x="9.05" y="18.16" width="2.69" height="4.04"/><rect x="12.00" y="18.16" width="2.69" height="4.04"/><rect x="14.96" y="18.16" width="2.69" height="4.04"/><rect x="17.92" y="18.16" width="2.69" height="4.04"/><rect x="20.87" y="18.16" width="2.69" height="4.04"/><rect x="23.83" y="18.16" width="2.69" height="4.04"/><rect x="26.79" y="18.16" width="2.69" height="4.04"/><rect x="29.74" y="18.16" width="2.69" height="4.04"/><rect x="32.70" y="20.36" width="1.21" height="1.82"/><rect x="7.57" y="22.52" width="1.21" height="1.82"/><rect x="9.05" y="22.50" width="2.69" height="4.04"/><rect x="12.00" y="22.50" width="2.69" height="4.04"/><rect x="14.96" y="22.50" width="2.69" height="4.04"/><rect x="17.92" y="22.50" width="2.69" height="4.04"/><rect x="20.87" y="22.50" width="2.69" height="4.04"/><rect x="23.83" y="22.50" width="2.69" height="4.04"/><rect x="26.79" y="22.50" width="2.69" height="4.04"/><rect x="29.74" y="22.52" width="1.21" height="1.82"/><rect x="31.22" y="22.52" width="1.21" height="1.82"/><rect x="29.74" y="24.69" width="1.21" height="1.82"/><rect x="10.52" y="26.86" width="1.21" height="1.82"/><rect x="12.00" y="26.86" width="1.21" height="1.82"/><rect x="13.48" y="26.84" width="2.69" height="4.04"/><rect x="16.44" y="26.84" width="2.69" height="4.04"/><rect x="19.39" y="26.84" width="2.69" height="4.04"/><rect x="22.35" y="26.84" width="2.69" height="4.04"/><rect x="25.31" y="26.86" width="1.21" height="1.82"/><rect x="26.79" y="26.86" width="1.21" height="1.82"/><rect x="28.26" y="26.86" width="1.21" height="1.82"/><rect x="25.31" y="29.03" width="1.21" height="1.82"/><rect x="14.96" y="31.20" width="1.21" height="1.82"/><rect x="16.44" y="31.20" width="1.21" height="1.82"/><rect x="17.92" y="31.17" width="2.69" height="4.04"/><rect x="20.87" y="31.20" width="1.21" height="1.82"/><rect x="22.35" y="31.20" width="1.21" height="1.82"/><rect x="23.83" y="31.20" width="1.21" height="1.82"/><rect x="20.87" y="33.37" width="1.21" height="1.82"/></svg><span>心形</span></button>
+      <button data-shape="circle" aria-label="圆形" aria-pressed="false"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="9.07" y="3.00" width="4.74" height="7.11"/><rect x="14.78" y="3.00" width="4.74" height="7.11"/><rect x="20.49" y="3.00" width="4.74" height="7.11"/><rect x="26.20" y="3.00" width="4.74" height="7.11"/><rect x="4.00" y="11.08" width="5.62" height="8.44"/><rect x="10.59" y="11.08" width="5.62" height="8.44"/><rect x="17.19" y="11.08" width="5.62" height="8.44"/><rect x="23.78" y="11.08" width="5.62" height="8.44"/><rect x="30.38" y="11.08" width="5.62" height="8.44"/><rect x="4.00" y="20.49" width="5.62" height="8.44"/><rect x="10.59" y="20.49" width="5.62" height="8.44"/><rect x="17.19" y="20.49" width="5.62" height="8.44"/><rect x="23.78" y="20.49" width="5.62" height="8.44"/><rect x="30.38" y="20.49" width="5.62" height="8.44"/><rect x="9.07" y="29.89" width="4.74" height="7.11"/><rect x="14.78" y="29.89" width="4.74" height="7.11"/><rect x="20.49" y="29.89" width="4.74" height="7.11"/><rect x="26.20" y="29.89" width="4.74" height="7.11"/></svg><span>圆形</span></button>
+      <button data-shape="arch" aria-label="拱形" aria-pressed="false"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="13.31" y="3.00" width="3.97" height="5.95"/><rect x="18.02" y="3.00" width="3.97" height="5.95"/><rect x="22.72" y="3.00" width="3.97" height="5.95"/><rect x="12.76" y="9.69" width="4.34" height="6.51"/><rect x="17.83" y="9.69" width="4.34" height="6.51"/><rect x="22.91" y="9.69" width="4.34" height="6.51"/><rect x="10.63" y="16.93" width="4.13" height="6.20"/><rect x="15.50" y="16.93" width="4.13" height="6.20"/><rect x="20.37" y="16.93" width="4.13" height="6.20"/><rect x="25.24" y="16.93" width="4.13" height="6.20"/><rect x="10.63" y="23.87" width="4.13" height="6.20"/><rect x="15.50" y="23.87" width="4.13" height="6.20"/><rect x="20.37" y="23.87" width="4.13" height="6.20"/><rect x="25.24" y="23.87" width="4.13" height="6.20"/><rect x="10.63" y="30.80" width="4.13" height="6.20"/><rect x="15.50" y="30.80" width="4.13" height="6.20"/><rect x="20.37" y="30.80" width="4.13" height="6.20"/><rect x="25.24" y="30.80" width="4.13" height="6.20"/></svg><span>拱形</span></button>
+    </div>
+    <label class="range-label" for="tile-ratio">图片比例</label><select id="tile-ratio" data-subject="tileRatio"><option value="portrait">竖版 2:3</option><option value="landscape">横版 3:2</option><option value="square">方形 1:1</option></select>
+    <label class="checkbox-label crop-control"><input id="allow-crop" data-subject="crop" type="checkbox"> 允许裁切</label>
+    <label class="range-label" for="subject-granularity">层级 <output id="subject-granularity-value">1</output></label><input id="subject-granularity" data-subject="granularity" type="range" min="1" max="4" step="1" value="1" title="1–4 种固定尺寸">
+    <div class="quantity-controls">
+      <div class="range-label quantity-label">海报数量 <output id="subject-count-value">0 张</output></div><div id="quantity-options" class="quantity-options" role="group" aria-label="海报数量档位"></div>
+      <label class="checkbox-label"><input id="subject-repeat" data-subject="repeat" type="checkbox"> 允许重复</label>
+    </div>
+    <label class="range-label" for="subject-scale">主体大小 <output id="subject-scale-value">82%</output></label><input id="subject-scale" data-subject="scale" type="range" min="0.3" max="1" step="0.01" value="0.82">
+  </section>
+  <section class="control-section base-section"><h3>底座</h3>
+    <div class="base-options" role="group" aria-label="底座预设">
+      <button data-base="none" aria-pressed="false"><span class="base-sample sample-none"><i></i></span><span>无</span></button>
+      <button data-base="white" aria-pressed="true"><span class="base-sample sample-white"><i></i></span><span>白卡</span></button>
+      <button data-base="paper" aria-pressed="false"><span class="base-sample sample-paper"><i></i></span><span>纸张</span></button>
+      <button data-base="black" aria-pressed="false"><span class="base-sample sample-black"><i></i></span><span>黑卡</span></button>
+      <button data-base="gallery" aria-pressed="false"><span class="base-sample sample-gallery"><i></i></span><span>细框</span></button>
+    </div>
+    <button id="upload-background" class="outline-button background-upload">＋ 背景图</button>
+    <div id="background-controls" hidden><div class="background-preview"><img id="background-preview" alt="自定义背景"><button id="remove-background" class="text-button">移除</button></div><label class="range-label" for="background-x">背景水平位置</label><input id="background-x" data-background="focusX" type="range" min="0" max="1" step=".01" value=".5"><label class="range-label" for="background-y">背景垂直位置</label><input id="background-y" data-background="focusY" type="range" min="0" max="1" step=".01" value=".5"></div>
+    <div id="mount-controls">
+    <label class="checkbox-label"><input id="shadow" type="checkbox"> 投影</label></div>
+  </section>
+  <section class="control-section"><h3>成品比例</h3><div class="ratio-options" role="group" aria-label="成品比例"><button data-ratio="portrait" aria-pressed="true">4:5</button><button data-ratio="square" aria-pressed="false">1:1</button><button data-ratio="story" aria-pressed="false">9:16</button><button data-ratio="landscape" aria-pressed="false">16:9</button></div></section>
+  <details class="control-section advanced"><summary>布局 <span aria-hidden="true">＋</span></summary>
+    <label class="range-label" for="subject-x">主体水平位置 <output id="subject-x-value" for="subject-x">50%</output></label><input id="subject-x" data-subject="x" type="range" min="0" max="1" step=".01" value=".5" aria-label="主体水平位置">
+    <label class="range-label" for="subject-y">主体垂直位置 <output id="subject-y-value" for="subject-y">50%</output></label><input id="subject-y" data-subject="y" type="range" min="0" max="1" step=".01" value=".5" aria-label="主体垂直位置">
+    <button id="center-subject" class="outline-button center-subject" type="button">居中</button>
+    <label class="range-label" for="padding">边距 <output id="padding-value">48</output></label><input id="padding" type="range" min="16" max="100" value="48">
+  </details>
+</aside>
+<section class="studio" aria-label="海报预览">
+  <h1 class="sr-only">海报编辑器</h1>
+  <div class="canvas-toolbar"><span>预览</span><button id="shuffle" class="text-button">换一版</button></div>
+  <div class="canvas-stage" id="stage"><div class="canvas-wrap"><div id="layout-notice" role="status" hidden><p id="layout-notice-text"></p><button id="enable-crop" class="outline-button" hidden>允许裁切</button></div><canvas id="preview" width="1080" height="1350" aria-label="海报墙实时预览"></canvas></div></div>
+  <div class="export-bar"><span id="export-size">2160 × 2700 px</span><div class="export-actions"><select id="format" aria-label="导出格式"><option value="png">PNG</option><option value="jpeg">JPG</option></select><select id="scale" aria-label="导出清晰度"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option></select><button id="export" class="primary-button">导出海报 <span>↓</span></button></div></div>
+  <span id="save-status" class="sr-only" role="status" aria-live="polite">加载中…</span>
+</section>
+<aside class="library-panel" aria-label="图片素材">
+  <div class="panel-heading"><h2>素材</h2><span id="image-count" class="count-badge">0</span><button id="clear" class="text-button subtle">清空</button></div>
+  <button id="upload" class="upload-zone" title="点击或拖入 JPG、PNG、WebP；最多 100 张，每张 20 MB；仅在本机处理"><span class="upload-icon">＋</span><strong>添加图片</strong></button>
+  <button id="cover-help" class="text-button cover-help" aria-haspopup="dialog" aria-controls="cover-dialog">找封面 <span aria-hidden="true">↗</span></button>
+  <div id="images" class="image-grid" aria-label="素材图片，拖动排序，点击编辑"></div>
+  <div id="empty-library" class="empty-library" hidden><p>暂无图片</p><button id="load-demo" class="text-button">载入示例</button></div>
+
+</aside>
+</main>
+<input id="background-input" type="file" accept="image/jpeg,image/png,image/webp" hidden><input id="file-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><input id="project-input" type="file" accept="application/json,.json,.posterwall" hidden>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<dialog id="cover-dialog" aria-labelledby="cover-title" aria-describedby="cover-intro">
+  <div class="cover-heading"><h2 id="cover-title">找封面</h2><form method="dialog"><button class="dialog-close" aria-label="关闭图源指引" autofocus>×</button></form></div>
+  <div class="cover-content">
+    <p id="cover-intro">找到封面，保存图片，再导入素材。</p>
+    <details class="cover-category" name="cover-category" open><summary>音乐</summary>
+      <ul class="cover-links">
+        <li><a href="https://cover.caydock.com/zh" target="_blank" rel="noopener noreferrer">CoverCay ↗</a><span>搜歌曲、专辑或歌手，选地区与尺寸下载。</span></li>
+        <li><a href="https://musicbrainz.org/" target="_blank" rel="noopener noreferrer">MusicBrainz ↗</a><span>选具体发行版 → Cover Art，找正封面。</span></li>
+        <li><a href="https://bandcamp.com/" target="_blank" rel="noopener noreferrer">Bandcamp ↗</a><span>独立音乐、原声与同人专辑，找艺人发行页。</span></li>
+      </ul>
+    </details>
+    <details class="cover-category" name="cover-category"><summary>影视</summary>
+      <ul class="cover-links">
+        <li><a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB ↗</a><span>电影、剧集与番剧 → 图片／海报，按语言选图。</span></li>
+        <li><a href="https://fanart.tv/" target="_blank" rel="noopener noreferrer">Fanart.tv ↗</a><span>补充电影、剧集海报，也能找背景与无字图。</span></li>
+      </ul>
+    </details>
+    <details class="cover-category" name="cover-category"><summary>动画</summary>
+      <ul class="cover-links">
+        <li><a href="https://bgm.tv/" target="_blank" rel="noopener noreferrer">Bangumi ↗</a><span>用中文或原名找动画，也收录书籍、音乐和游戏。</span></li>
+        <li><a href="https://anilist.co/search/anime" target="_blank" rel="noopener noreferrer">AniList ↗</a><span>用英文或罗马音找番剧，核对季度与剧场版。</span></li>
+      </ul>
+    </details>
+    <details class="cover-category" name="cover-category"><summary>游戏</summary>
+      <ul class="cover-links">
+        <li><a href="https://www.steamgriddb.com/" target="_blank" rel="noopener noreferrer">SteamGridDB ↗</a><span>搜游戏 → Grids；竖版可选 600 × 900，也有方形。</span></li>
+        <li><a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer">IGDB ↗</a><span>补充主机与旧作封面，核对平台及发行版本。</span></li>
+      </ul>
+      <details class="cover-local"><summary>从 Steam 文件夹找</summary>
+        <p>在 Steam 主目录内打开 <code>appcache/librarycache</code>，连同子文件夹查找 <code>library_600x900</code>。自己设置的封面通常在 <code>userdata/&lt;用户编号&gt;/config/grid</code>。</p>
+        <dl class="cover-paths">
+          <dt>Windows</dt><dd><code>C:\Program Files (x86)\Steam</code></dd>
+          <dt>macOS</dt><dd><code>~/Library/Application Support/Steam</code></dd>
+          <dt>Linux / Steam Deck</dt><dd><code>~/.local/share/Steam</code></dd>
+        </dl>
+        <p>以上为常见位置；自定义安装与 Flatpak 可能不同。缓存只含已加载的图片，文件名和目录会随客户端版本变化；找不到可用 SteamGridDB。</p>
+      </details>
+    </details>
+    <details class="cover-category" name="cover-category"><summary>轻小说 / 漫画</summary>
+      <ul class="cover-links">
+        <li><a href="https://bookwalker.jp/" target="_blank" rel="noopener noreferrer">BOOK☆WALKER 日本 ↗</a><span>日文原版轻小说、漫画，按书名与卷数找单册。</span></li>
+        <li><a href="https://www.bookwalker.com.tw/" target="_blank" rel="noopener noreferrer">BOOK☆WALKER 台湾 ↗</a><span>繁中版轻小说、漫画，留意版本与特装封面。</span></li>
+        <li><a href="https://www.kadokawa.co.jp/" target="_blank" rel="noopener noreferrer">KADOKAWA ↗</a><span>角川官方书目，含电击文库、MF 文库 J 等。</span></li>
+        <li><a href="https://www.shueisha.co.jp/books/" target="_blank" rel="noopener noreferrer">集英社 ↗</a><span>官方漫画与书籍封面，核对单行本卷数。</span></li>
+      </ul>
+    </details>
+    <details class="cover-category" name="cover-category"><summary>书籍</summary>
+      <ul class="cover-links">
+        <li><a href="https://book.douban.com/" target="_blank" rel="noopener noreferrer">豆瓣读书 ↗</a><span>搜中文书名或 ISBN，先核对出版社和版本。</span></li>
+        <li><a href="https://www.books.com.tw/" target="_blank" rel="noopener noreferrer">博客来 ↗</a><span>繁中书籍、轻小说与杂志，查看单本商品封面。</span></li>
+        <li><a href="https://openlibrary.org/" target="_blank" rel="noopener noreferrer">Open Library ↗</a><span>用书名或 ISBN 找版本，适合补充外文书。</span></li>
+        <li><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Google Books ↗</a><span>按书名、作者或 ISBN 查找；部分只有缩略图。</span></li>
+      </ul>
+    </details>
+    <details class="cover-category cover-tips" name="cover-category"><summary>选图与保存</summary>
+      <ul><li>用原名＋年份、卷数或 ISBN，核对语言与发行版本。</li><li>进入作品页，优先保存原图或大图；手机可长按。若只有小图，换一个来源。</li><li>导入 JPG、PNG、WebP。不要把网页链接或搜索结果缩略图当作原图。</li><li>图片版权归原权利人，分享时保留来源；商业使用请核对授权。</li></ul>
+    </details>
+  </div>
+</dialog>
+<dialog id="image-dialog"><form method="dialog"><button class="dialog-close" aria-label="关闭图片编辑">×</button></form><h2>编辑图片</h2><img id="edit-preview" alt="所选图片"><label for="image-title">作品名称</label><input id="image-title" maxlength="120"><div class="dialog-actions"><button id="move-left" class="outline-button">← 前移</button><button id="move-right" class="outline-button">后移 →</button><button id="remove-image" class="danger-button">移除此图</button><button id="finish-edit" class="primary-button">完成</button></div></dialog>
+<dialog id="agent-dialog"><form method="dialog"><button class="dialog-close" aria-label="关闭 Agent 说明">×</button></form><h2>Agent 使用</h2><p>提供仓库、图片和要求，即可生成海报与可编辑项目。</p><pre>读取 PosterWall 仓库的 AGENTS.md，
+用我的图片生成一张 4:5 的海报墙，
+主体为心形，使用纸张底座，
+不加文字，导出 2 倍 PNG 和项目文件。</pre><a class="primary-button" href="https://github.com/bluedinosaur233/PosterWall#agent-使用" target="_blank" rel="noreferrer">使用文档 ↗</a></dialog>
+<dialog id="confirm-dialog"><h2 id="confirm-title">替换当前项目？</h2><p>此操作可以撤销。</p><div class="dialog-actions"><button id="confirm-cancel" class="outline-button">取消</button><button id="confirm-ok" class="primary-button">继续</button></div></dialog>
+<button id="undo" class="undo-button" hidden>↶ 撤销</button>
+</body></html>

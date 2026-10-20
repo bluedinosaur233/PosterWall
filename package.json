@@ -1,0 +1,20 @@
+{
+  "name": "posterwall",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first poster wall studio for people and agents.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --test",
+    "render": "node scripts/render.mjs",
+    "review-layouts": "node scripts/review-layouts.mjs",
+    "preview": "node scripts/preview.mjs",
+    "build-templates": "node scripts/build-templates.mjs"
+  },
+  "dependencies": { "@napi-rs/canvas": "^0.1.80" }
+}
