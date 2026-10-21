@@ -24,11 +24,11 @@ export function fixedQuantityState(subject, sourceCount) {
   }
   return { selected, options: counts.map(count => ({ count, disabled: !sourceCount || (!subject.repeat && count > sourceCount) })) };
 }
-export function incompatibleImages(ratios, subject) {
+export function incompatibleImages(ratios, subject, indices = null) {
   if (subject.tileRatio === 'native' || subject.crop) return [];
   const count = subject.count ?? fixedQuantityState(subject, ratios.length).selected;
-  const used = ratios.slice(0, count ?? ratios.length);
-  return used.flatMap((ratio, i) => Math.abs(ratio - TILE_RATIOS[subject.tileRatio]) > 1e-8 ? [i] : []);
+  const used = indices ? [...new Set(indices)] : ratios.slice(0, count ?? ratios.length).map((_, i) => i);
+  return used.filter(i => Math.abs(ratios[i] - TILE_RATIOS[subject.tileRatio]) > 1e-8);
 }
 
 // Assign art after geometry. Every source has a fixed, balanced quota; nearby
@@ -84,15 +84,18 @@ export function distributeSources(tiles, sourceCount, seed) {
 export function fixedLayout(sourceCount, box, subject, seed) {
   if (!sourceCount) return [];
   const count = subject.count ?? fixedQuantityState(subject, sourceCount).selected;
+  if (!subject.repeat && count > sourceCount) throw new Error(`此档需要 ${count} 张素材，当前 ${sourceCount} 张。请添加图片或允许重复。`);
+  return distributeSources(fixedGeometry(box, subject, seed, count), Math.min(sourceCount, count), seed);
+}
+
+export function fixedGeometry(box, subject, seed, count = subject.count) {
   const candidates = plansFor(subject).filter(p => p.tiles.length === count && count <= 200);
   if (!candidates.length) throw new Error('当前数量与此模板不兼容，请选择可用数量档位。');
-  if (!subject.repeat && count > sourceCount) throw new Error(`此档需要 ${count} 张素材，当前 ${sourceCount} 张。请添加图片或允许重复。`);
-  sourceCount = Math.min(sourceCount, count);
   const rng = random(seed), plan = candidates[Math.floor(rng() * candidates.length)], ratio = TILE_RATIOS[subject.tileRatio];
   const unit = Math.min(box.w / (plan.w * ratio), box.h / plan.h), left = box.x + (box.w - plan.w * ratio * unit) / 2, top = box.y + (box.h - plan.h * unit) / 2;
   const palette = [...new Set(plan.tiles.map(t => t[2]))].sort((a, b) => a - b);
   const flipX = rng() > .5, flipY = ['square', 'portrait', 'landscape', 'circle'].includes(subject.shape) && rng() > .5;
   const tiles = plan.tiles.map(([x, y, size]) => ({ x: left + (flipX ? plan.w - x - size : x) * ratio * unit,
     y: top + (flipY ? plan.h - y - size : y) * unit, w: size * ratio * unit, h: size * unit, level: palette.indexOf(size) + 1 }));
-  return distributeSources(tiles, sourceCount, seed);
+  return tiles;
 }

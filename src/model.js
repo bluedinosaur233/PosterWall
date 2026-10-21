@@ -48,6 +48,9 @@ export function normalizeImage(item, defaultId, defaultTitle) {
 export function projectAssets(project) {
   return project.base?.background ? [...project.images, project.base.background] : [...project.images];
 }
+export function selectedImages(project) {
+  return project.images.filter(item => item.selected !== false);
+}
 export function normalizeProject(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('项目必须是 JSON 对象');
   if (input.version !== VERSION) throw new Error('不支持此项目版本，请使用 version: 1');
@@ -72,7 +75,11 @@ export function normalizeProject(input) {
   }
   if (!Number.isInteger(settings.columns) || !Number.isInteger(settings.seed)) throw new Error('columns 和 seed 必须为整数');
   if (!Array.isArray(input.images) || input.images.length > MAX_IMAGES) throw new Error(`images 必须是数组，最多 ${MAX_IMAGES} 张`);
-  const images = input.images.map((item, i) => normalizeImage(item, `image-${i + 1}`, `作品 ${i + 1}`));
+  const images = input.images.map((item, i) => {
+    const image = normalizeImage(item, `image-${i + 1}`, `作品 ${i + 1}`);
+    if (item.selected !== undefined && typeof item.selected !== 'boolean') throw new Error('image.selected 必须为布尔值');
+    return { ...image, selected: item.selected ?? true };
+  });
   if (new Set(images.map(i => i.id)).size !== images.length) throw new Error('图片 id 不能重复');
   const sub = input.subject ?? {}, mount = input.base ?? {};
   for (const [key, value] of [['subject', sub], ['base', mount]]) {
@@ -93,6 +100,12 @@ export function normalizeProject(input) {
   };
   if (!Number.isInteger(subject.granularity)) throw new Error('subject.granularity 必须为整数');
   if (subject.count !== null && !Number.isInteger(subject.count)) throw new Error('subject.count 必须为整数');
+  subject.placement = null;
+  if (sub.placement != null) {
+    const p = sub.placement;
+    if (typeof p !== 'object' || Array.isArray(p) || typeof p.key !== 'string' || !p.key.length || p.key.length > 160 || !Array.isArray(p.images) || !p.images.length || p.images.length > 200 || p.images.some(id => typeof id !== 'string' || !id.length || id.length > 100)) throw new Error('subject.placement 必须包含布局标识和最多 200 个素材 ID');
+    subject.placement = { key: p.key, images: [...p.images] };
+  }
   if (mount.shadow !== undefined && typeof mount.shadow !== 'boolean') throw new Error('base.shadow 必须是布尔值');
   const base = {
     preset: enumValue(mount.preset, BASE_PRESETS, BASE_DEFAULTS.preset, 'base.preset'),

@@ -4,7 +4,7 @@ import { resolve, dirname, extname, basename } from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
-import { normalizeProject, MAX_IMAGES, dimensions, projectAssets } from '../src/model.js';
+import { normalizeProject, MAX_IMAGES, dimensions, projectAssets, selectedImages } from '../src/model.js';
 import { renderWall } from '../src/render.js';
 const MIME = { '.jpg': 'jpeg', '.jpeg': 'jpeg', '.png': 'png', '.webp': 'webp' };
 export async function renderProject({ input, images, output = 'output/posterwall.png', scale = '2', template, ratio, title, seed, font, shape, granularity, levels, count, repeat, crop, 'tile-ratio': tileRatio, base: basePreset, background, mat, shadow, 'subject-scale': subjectScale, project: projectOutput } = {}) {
@@ -38,6 +38,7 @@ export async function renderProject({ input, images, output = 'output/posterwall
   if (background !== undefined) project.base.background = { src: resolve(background), title: basename(background) };
   project = normalizeProject(project);
   if (!project.images.length) throw new Error('项目没有图片');
+  if (!selectedImages(project).length) throw new Error('请先勾选素材');
   const multiplier = Number(scale), size = dimensions(project.settings, multiplier);
   const extension = extname(output).toLowerCase();
   if (!['.png', '.jpg', '.jpeg'].includes(extension)) throw new Error('--output 扩展名必须为 .png 或 .jpg');
@@ -71,7 +72,7 @@ export async function renderProject({ input, images, output = 'output/posterwall
   const data = extension === '.png' ? await canvas.encode('png') : await canvas.encode('jpeg', 96);
   await mkdir(dirname(resolve(output)), { recursive: true }); await writeFile(output, data);
   if (projectOutput) { await mkdir(dirname(resolve(projectOutput)), { recursive: true }); await writeFile(projectOutput, portableJSON); }
-  return { output: resolve(output), ...size, images: project.images.length, bytes: data.length, project: projectOutput ? resolve(projectOutput) : undefined };
+  return { output: resolve(output), ...size, images: selectedImages(project).length, bytes: data.length, project: projectOutput ? resolve(projectOutput) : undefined };
 }
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   try {

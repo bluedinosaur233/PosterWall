@@ -1,6 +1,9 @@
-import { DEFAULTS, MAX_IMAGES, normalizeProject, dimensions, projectAssets } from './model.js';
+import { DEFAULTS, MAX_IMAGES, normalizeProject, dimensions, projectAssets, selectedImages } from './model.js';
 import { renderWall } from './render.js';
 import { createDemoProject } from './demo.js';
+import { editPlacement, applyPlacement, imageUsage, setImageSelection, nextLayoutSeed, placementIndices } from './placement.js';
+import { previewEditor } from './preview-editor.js';
+import { previewZoom } from './preview-zoom.js';
 import { fixedQuantityState, incompatibleImages, TILE_RATIOS } from './fixed-layout.js';
 import { readDraft, writeDraft } from './storage.js';
 import { importImage, loadImage, blobDataURL, resolveImageFiles, MAX_FILE_BYTES, MAX_PROJECT_BYTES } from './images.js';
@@ -14,7 +17,30 @@ function editorProject(input) {
   return normalized;
 }
 let project = editorProject({ version: 1, settings: DEFAULTS, images: [] });
-let cache = new Map(), revision = 0, saveTimer, toastTimer, editingId, draggingId, undoProject, busy = false, ready = false;
+let cache = new Map(), usage = new Map(), revision = 0, saveTimer, toastTimer, editingId, undoProject, busy = false, ready = false;
+const previewView = previewZoom({ stage: $('#stage'), surface: $('#preview-surface'), zoomIn: $('#zoom-in'), zoomOut: $('#zoom-out'), fit: $('#zoom-fit'), value: $('#zoom-value') });
+const previewEditing = previewEditor({ stage: $('#stage'), surface: $('#preview-surface'), layer: $('#preview-tiles'), library: $('#images'), hint: $('#preview-hint'), cancel: $('#cancel-placement'), onEdit: placePoster, onReorder: reorderLibrary, canEdit: () => ready && !busy && !$('#preview-surface').hidden && !$('#export').disabled, canReorder: () => ready && !busy });
+
+function reorderLibrary(sourceId, targetId) {
+  const from = project.images.findIndex(image => image.id === sourceId), to = project.images.findIndex(image => image.id === targetId);
+  if (from < 0 || to < 0 || from === to) return;
+  checkpoint(); const [item] = project.images.splice(from, 1); project.images.splice(to, 0, item); changed({ library: true });
+}
+
+async function placePoster(target, action) {
+  const tiles = previewEditing.tiles;
+  await runBusy(async () => {
+    const placement = editPlacement(project, tiles, target, action);
+    if (!placement) return;
+    if (action.imageId) {
+      const item = project.images.find(image => image.id === action.imageId), image = await cachedImage(item.src);
+      if (incompatibleImages([image.naturalWidth / image.naturalHeight], { ...project.subject, count: 1 }).length) throw new Error('这张素材比例不符，请先开启「允许裁切」再拖入。');
+    }
+    checkpoint();
+    applyPlacement(project, tiles, placement);
+    changed({ library: true });
+  });
+}
 function toast(message, duration = 4500) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('#toast').hidden = true; }, duration); }
 function checkpoint() { undoProject = structuredClone(project); $('#undo').hidden = false; }
 async function confirmAction(title) {
@@ -76,13 +102,38 @@ function syncSizes() {
 function renderLibrary() {
   const fragment = document.createDocumentFragment();
   project.images.forEach(item => {
-    const div = document.createElement('div'); div.className = 'image-item'; div.draggable = true; div.dataset.id = item.id;
-    const button = document.createElement('button'); button.type = 'button'; button.setAttribute('aria-label', `编辑 ${item.title}`); button.title = `${item.title} · 拖动排序，点击编辑`;
-    const img = document.createElement('img'); img.src = item.src; img.alt = item.title; img.loading = 'lazy'; img.style.objectPosition = `${item.focusX * 100}% ${item.focusY * 100}%`;
-    button.append(img); div.append(button); fragment.append(div);
+    const div = document.createElement('div'); div.className = 'image-item'; div.dataset.id = item.id;
+    const label = document.createElement('label'); label.className = 'image-select'; label.title = `${item.title} · 勾选参与制作，拖入预览替换`;
+    const input = document.createElement('input'); input.type = 'checkbox'; input.setAttribute('aria-label', `参与制作：${item.title}`);
+    const badge = document.createElement('span'); badge.className = 'image-usage'; badge.setAttribute('aria-hidden', 'true'); badge.hidden = true;
+    const img = document.createElement('img'); img.src = item.src; img.alt = item.title; img.loading = 'lazy'; img.draggable = false; img.style.objectPosition = `${item.focusX * 100}% ${item.focusY * 100}%`;
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'image-edit'; button.setAttribute('aria-label', `编辑 ${item.title}`); button.title = '编辑图片'; button.textContent = '···';
+    label.append(img, input, badge); div.append(label, button); fragment.append(div);
   });
   $('#images').replaceChildren(fragment); $('#image-count').textContent = project.images.length;
   $('#empty-library').hidden = project.images.length > 0; $('#clear').disabled = !project.images.length;
+  syncLibrarySelection();
+}
+function syncLibrarySelection() {
+  const selected = selectedImages(project).length;
+  $('#selection-controls').hidden = !project.images.length;
+  $('#selection-count').textContent = `已选 ${selected} 张`;
+  $('#select-all').textContent = selected === project.images.length ? '取消全选' : '全选';
+  for (const element of $('#images').children) {
+    const item = project.images.find(image => image.id === element.dataset.id);
+    const count = usage.get(item.id) ?? 0, showCount = project.subject.repeat && count > 1;
+    element.classList.toggle('is-selected', item.selected !== false);
+    element.classList.toggle('has-repeat-count', showCount);
+    element.dataset.usage = count;
+    const input = element.querySelector('input'), badge = element.querySelector('.image-usage');
+    input.checked = item.selected !== false;
+    input.title = `当前使用 ${count} 次`;
+    input.setAttribute('aria-description', input.title);
+    badge.textContent = showCount ? count : ''; badge.hidden = !showCount;
+  }
+}
+function compositionSnapshot() {
+  return structuredClone({ ...project, images: selectedImages(project) });
 }
 function cachedImage(src) {
   if (!cache.has(src)) cache.set(src, loadImage(src).catch(error => { cache.delete(src); throw error; }));
@@ -92,8 +143,9 @@ async function loadAssets(snapshot) {
   return Promise.all([Promise.all(snapshot.images.map(item => cachedImage(item.src))), snapshot.base.background ? cachedImage(snapshot.base.background.src) : null]);
 }
 async function draw() {
-  const thisRevision = ++revision, snapshot = structuredClone(project);
-  $('#export').disabled = true;
+  const thisRevision = ++revision, snapshot = compositionSnapshot();
+  $('#export').disabled = true; $('#shuffle').disabled = true; previewEditing.clear();
+  usage = new Map(); syncLibrarySelection();
   syncSizes();
   try {
     const [loaded, background] = await loadAssets(snapshot);
@@ -106,6 +158,8 @@ async function draw() {
     }
     const { options, selected } = fixedQuantityState(snapshot.subject, loaded.length);
     if (selected !== null) project.subject.count = snapshot.subject.count = selected;
+    const manual = placementIndices(snapshot.subject, snapshot.settings.seed, snapshot.images);
+    if (!manual) project.subject.placement = snapshot.subject.placement = null;
     const controls = $('#quantity-options');
     controls.replaceChildren(...options.map(({ count, disabled }) => {
       const button = document.createElement('button'); button.type = 'button';
@@ -118,17 +172,23 @@ async function draw() {
     levels.max = 4; levels.value = snapshot.subject.granularity;
     levels.disabled = false; levels.title = '1–4 种固定尺寸';
     $('#subject-granularity-value').value = snapshot.subject.granularity;
-    const incompatible = incompatibleImages(ratios, snapshot.subject);
+    const incompatible = incompatibleImages(ratios, snapshot.subject, manual);
     $('#enable-crop').hidden = !incompatible.length;
-    $('#layout-notice').hidden = true; $('#preview').hidden = false;
-    if (loaded.length && options.find(option => option.count === selected)?.disabled) throw new Error(`此档需要 ${selected} 张素材，当前 ${loaded.length} 张。请添加图片或允许重复。`);
+    $('#layout-notice').hidden = true; $('#preview').hidden = false; $('#preview-surface').hidden = false;
+    if (!loaded.length) throw new Error(project.images.length ? '勾选素材后开始制作' : '添加图片后，勾选参与制作');
+    if (options.find(option => option.count === selected)?.disabled) throw new Error(`此档需要 ${selected} 张素材，已选 ${loaded.length} 张。请勾选更多素材或允许重复。`);
     const tiles = renderWall($('#preview'), snapshot, loaded, 1, background);
+    previewView.update($('#preview').width, $('#preview').height);
+    previewEditing.render(tiles, snapshot.images, $('#preview').width, $('#preview').height);
+    usage = imageUsage(tiles); syncLibrarySelection();
     $('#subject-count-value').value = `${tiles.length} 张`;
     $('#export').disabled = !snapshot.images.length || busy;
-    for (const key of cache.keys()) if (!projectAssets(snapshot).some(i => i.src === key)) cache.delete(key);
+    $('#shuffle').disabled = busy;
+    for (const key of cache.keys()) if (!projectAssets(project).some(i => i.src === key)) cache.delete(key);
   } catch (error) { if (thisRevision === revision) {
     $('#subject-count-value').value = '—';
-    $('#preview').hidden = true; $('#layout-notice').hidden = false;
+    $('#preview').hidden = true; $('#preview-surface').hidden = true; $('#layout-notice').hidden = false;
+    previewView.clear();
     $('#layout-notice-text').textContent = error.message;
   } }
 }
@@ -144,10 +204,10 @@ function changed({ library = false, settings = false } = {}) {
 async function runBusy(action) {
   if (busy || !ready) return;
   busy = true; $('#upload').disabled = true; $('#export').disabled = true;
-  for (const selector of ['.settings-panel', '#images', '.canvas-toolbar']) $(selector).inert = true;
+  for (const selector of ['.settings-panel', '#images', '#selection-controls', '.canvas-toolbar', '#preview-surface']) $(selector).inert = true;
   try { await action(); } catch (error) { toast(error.message, 7000); }
   finally { busy = false; $('#upload').disabled = false;
-    for (const selector of ['.settings-panel', '#images', '.canvas-toolbar']) $(selector).inert = false;
+    for (const selector of ['.settings-panel', '#images', '#selection-controls', '.canvas-toolbar', '#preview-surface']) $(selector).inert = false;
     void draw(); }
 }
 async function addFiles(files) {
@@ -160,10 +220,10 @@ async function addFiles(files) {
     const added = [], failed = [];
     for (const file of files.slice(0, room)) {
       $('#save-status').textContent = `正在处理图片 ${added.length + failed.length + 1}/${Math.min(room, files.length)}…`;
-      try { added.push(await importImage(file)); } catch (e) { failed.push(e.message); }
+      try { added.push({ ...await importImage(file), selected: false }); } catch (e) { failed.push(e.message); }
     }
     if (added.length) { checkpoint(); project.images.push(...added); changed({ library: true }); }
-    toast(`已添加 ${added.length} 张${failed.length ? `；${failed[0]}` : ''}${files.length > room ? `；超过 ${MAX_IMAGES} 张的部分未导入` : ''}`, failed.length ? 7000 : 4500);
+    toast(`已添加 ${added.length} 张${added.length ? '，勾选后参与制作' : ''}${failed.length ? `；${failed[0]}` : ''}${files.length > room ? `；超过 ${MAX_IMAGES} 张的部分未导入` : ''}`, failed.length ? 7000 : 4500);
   });
 }
 async function openProject(file, files = []) {
@@ -261,9 +321,10 @@ document.querySelectorAll('[data-background]').forEach(input => input.addEventLi
 }));
 $('#shuffle').addEventListener('click', () => {
   if (!ready || busy) return;
-  checkpoint(); project.settings.seed = crypto.getRandomValues(new Uint32Array(1))[0];
-  for (let i = project.images.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [project.images[i], project.images[j]] = [project.images[j], project.images[i]]; }
-  changed({ library: true });
+  const seed = nextLayoutSeed(project, crypto.getRandomValues(new Uint32Array(1))[0]);
+  if (seed === null) { toast('此配置只有一种排列'); return; }
+  checkpoint(); project.settings.seed = seed; project.subject.placement = null;
+  changed();
 });
 $('#clear').addEventListener('click', async () => {
   if (busy || !ready || !await confirmAction('清空素材？')) return;
@@ -271,8 +332,22 @@ $('#clear').addEventListener('click', async () => {
 });
 $('#undo').addEventListener('click', () => { if (undoProject && !busy) { project = undoProject; undoProject = null; $('#undo').hidden = true; changed({ library: true, settings: true }); toast('已撤销'); } });
 $('#load-demo').addEventListener('click', () => runBusy(async () => { const demo = await loadDemo(); checkpoint(); project = demo; changed({ library: true, settings: true }); }));
+$('#select-all').addEventListener('click', () => {
+  if (!ready || busy || !project.images.length) return;
+  const select = selectedImages(project).length !== project.images.length;
+  checkpoint(); setImageSelection(project, project.images.map(item => item.id), select);
+  syncLibrarySelection(); changed();
+});
+$('#images').addEventListener('change', event => {
+  if (!ready || busy || !event.target.matches('input[type=checkbox]')) return;
+  const item = project.images.find(image => image.id === event.target.closest('.image-item').dataset.id);
+  if (!item) return;
+  checkpoint(); setImageSelection(project, [item.id], event.target.checked); syncLibrarySelection(); changed();
+});
 $('#images').addEventListener('click', e => {
-  const item = e.target.closest('.image-item'); if (!item || busy) return;
+  const source = e.target.closest('.image-item');
+  if (source && !e.target.closest('.image-edit') && e.target.tagName !== 'INPUT' && previewEditing.replaceSelected(source.dataset.id)) { e.preventDefault(); return; }
+  const item = e.target.closest('.image-edit')?.closest('.image-item'); if (!item || !ready || busy) return;
   editingId = item.dataset.id; checkpoint(); syncImageEditor(); $('#image-dialog').showModal();
 });
 function syncImageEditor() {
@@ -290,16 +365,6 @@ for (const [id, delta] of [['move-left', -1], ['move-right', 1]]) $(`#${id}`).ad
 });
 $('#remove-image').addEventListener('click', () => { project.images = project.images.filter(x => x.id !== editingId); $('#image-dialog').close(); changed({ library: true }); });
 $('#finish-edit').addEventListener('click', () => $('#image-dialog').close());
-$('#images').addEventListener('dragstart', e => { const item = e.target.closest('.image-item'); if (!item) return; draggingId = item.dataset.id; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', draggingId); });
-$('#images').addEventListener('dragend', () => { draggingId = null; document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging')); });
-$('#images').addEventListener('dragover', e => { if (draggingId) e.preventDefault(); });
-$('#images').addEventListener('drop', e => {
-  if (!draggingId || busy) return; e.preventDefault();
-  const target = e.target.closest('.image-item'); if (!target) return;
-  const from = project.images.findIndex(x => x.id === draggingId), to = project.images.findIndex(x => x.id === target.dataset.id);
-  if (from < 0 || to < 0 || from === to) return;
-  checkpoint(); const [item] = project.images.splice(from, 1); project.images.splice(to, 0, item); draggingId = null; changed({ library: true });
-});
 $('#save-project').addEventListener('click', () => runBusy(async () => {
   const portable = structuredClone(project);
   for (const item of projectAssets(portable)) if (!item.src.startsWith('data:')) {
@@ -310,8 +375,8 @@ $('#save-project').addEventListener('click', () => runBusy(async () => {
   download(blob, `${slug()}.posterwall.json`); toast('项目已保存');
 }));
 $('#export').addEventListener('click', () => runBusy(async () => {
-  if (!project.images.length) throw new Error('请先添加图片');
-  const snapshot = structuredClone(project), scale = Number($('#scale').value), format = $('#format').value;
+  const snapshot = compositionSnapshot(), scale = Number($('#scale').value), format = $('#format').value;
+  if (!snapshot.images.length) throw new Error('请先勾选素材');
   const button = $('#export'); button.textContent = '正在生成…';
   try {
     const [loaded, background] = await loadAssets(snapshot), canvas = document.createElement('canvas');

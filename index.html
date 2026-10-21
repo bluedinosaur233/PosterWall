@@ -37,7 +37,7 @@
     <label class="checkbox-label"><input id="shadow" type="checkbox"> 投影</label></div>
   </section>
   <section class="control-section"><h3>成品比例</h3><div class="ratio-options" role="group" aria-label="成品比例"><button data-ratio="portrait" aria-pressed="true">4:5</button><button data-ratio="square" aria-pressed="false">1:1</button><button data-ratio="story" aria-pressed="false">9:16</button><button data-ratio="landscape" aria-pressed="false">16:9</button></div></section>
-  <details class="control-section advanced"><summary>布局 <span aria-hidden="true">＋</span></summary>
+  <details class="control-section advanced" open><summary>布局 <span aria-hidden="true">＋</span></summary>
     <label class="range-label" for="subject-x">主体水平位置 <output id="subject-x-value" for="subject-x">50%</output></label><input id="subject-x" data-subject="x" type="range" min="0" max="1" step=".01" value=".5" aria-label="主体水平位置">
     <label class="range-label" for="subject-y">主体垂直位置 <output id="subject-y-value" for="subject-y">50%</output></label><input id="subject-y" data-subject="y" type="range" min="0" max="1" step=".01" value=".5" aria-label="主体垂直位置">
     <button id="center-subject" class="outline-button center-subject" type="button">居中</button>
@@ -46,16 +46,18 @@
 </aside>
 <section class="studio" aria-label="海报预览">
   <h1 class="sr-only">海报编辑器</h1>
-  <div class="canvas-toolbar"><span>预览</span><button id="shuffle" class="text-button">换一版</button></div>
-  <div class="canvas-stage" id="stage"><div class="canvas-wrap"><div id="layout-notice" role="status" hidden><p id="layout-notice-text"></p><button id="enable-crop" class="outline-button" hidden>允许裁切</button></div><canvas id="preview" width="1080" height="1350" aria-label="海报墙实时预览"></canvas></div></div>
+  <div class="canvas-toolbar"><span>预览</span><div class="preview-zoom" role="group" aria-label="预览缩放"><button id="zoom-out" type="button" aria-label="缩小预览" title="缩小预览">−</button><output id="zoom-value" aria-live="polite" aria-label="预览缩放比例">—</output><button id="zoom-in" type="button" aria-label="放大预览" title="放大预览">＋</button><button id="zoom-fit" type="button" title="适应窗口">适应</button></div><button id="shuffle" class="outline-button" title="保持形状、层级和数量，重新排列；可撤销">↻ 随机布局</button></div>
+  <div class="canvas-stage" id="stage" tabindex="0" aria-label="海报画布" title="滚动查看 · 空格拖动平移"><div class="canvas-wrap"><div id="layout-notice" role="status" hidden><p id="layout-notice-text"></p><button id="enable-crop" class="outline-button" hidden>允许裁切</button></div><div id="preview-surface"><canvas id="preview" width="1080" height="1350" aria-label="海报墙实时预览"></canvas><div id="preview-tiles" role="group" aria-label="海报位置，拖动或点选交换"></div></div></div></div>
+  <div class="preview-actions"><span id="preview-hint" role="status"></span><button id="cancel-placement" class="text-button" hidden>取消选择</button></div>
   <div class="export-bar"><span id="export-size">2160 × 2700 px</span><div class="export-actions"><select id="format" aria-label="导出格式"><option value="png">PNG</option><option value="jpeg">JPG</option></select><select id="scale" aria-label="导出清晰度"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option></select><button id="export" class="primary-button">导出海报 <span>↓</span></button></div></div>
   <span id="save-status" class="sr-only" role="status" aria-live="polite">加载中…</span>
 </section>
 <aside class="library-panel" aria-label="图片素材">
   <div class="panel-heading"><h2>素材</h2><span id="image-count" class="count-badge">0</span><button id="clear" class="text-button subtle">清空</button></div>
   <button id="upload" class="upload-zone" title="点击或拖入 JPG、PNG、WebP；最多 100 张，每张 20 MB；仅在本机处理"><span class="upload-icon">＋</span><strong>添加图片</strong></button>
-  <button id="cover-help" class="text-button cover-help" aria-haspopup="dialog" aria-controls="cover-dialog">找封面 <span aria-hidden="true">↗</span></button>
-  <div id="images" class="image-grid" aria-label="素材图片，拖动排序，点击编辑"></div>
+  <button id="cover-help" class="outline-button cover-help" aria-haspopup="dialog" aria-controls="cover-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>找封面<span aria-hidden="true">↗</span></button>
+  <div id="selection-controls" class="selection-controls" hidden><span id="selection-count" role="status">已选 0 张</span><button id="select-all" class="text-button">全选</button></div>
+  <div id="images" class="image-grid" aria-label="勾选素材参与制作，拖动排序"></div>
   <div id="empty-library" class="empty-library" hidden><p>暂无图片</p><button id="load-demo" class="text-button">载入示例</button></div>
 
 </aside>
@@ -125,7 +127,7 @@
 <dialog id="agent-dialog"><form method="dialog"><button class="dialog-close" aria-label="关闭 Agent 说明">×</button></form><h2>Agent 使用</h2><p>提供仓库、图片和要求，即可生成海报与可编辑项目。</p><pre>读取 PosterWall 仓库的 AGENTS.md，
 用我的图片生成一张 4:5 的海报墙，
 主体为心形，使用纸张底座，
-不加文字，导出 2 倍 PNG 和项目文件。</pre><a class="primary-button" href="https://github.com/bluedinosaur233/PosterWall#agent-使用" target="_blank" rel="noreferrer">使用文档 ↗</a></dialog>
+导出 2 倍 PNG 和项目文件。</pre><a class="primary-button" href="https://github.com/bluedinosaur233/PosterWall#agent-使用" target="_blank" rel="noreferrer">使用文档 ↗</a></dialog>
 <dialog id="confirm-dialog"><h2 id="confirm-title">替换当前项目？</h2><p>此操作可以撤销。</p><div class="dialog-actions"><button id="confirm-cancel" class="outline-button">取消</button><button id="confirm-ok" class="primary-button">继续</button></div></dialog>
 <button id="undo" class="undo-button" hidden>↶ 撤销</button>
 </body></html>

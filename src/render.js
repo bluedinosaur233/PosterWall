@@ -2,6 +2,7 @@ import { dimensions, normalizeProject } from './model.js';
 import { random } from './layout.js';
 import { composition, fitImage, subjectLayout } from './shapes.js';
 import { fixedLayout, incompatibleImages, TILE_LABELS } from './fixed-layout.js';
+import { placementIndices } from './placement.js';
 const FONT = '"PosterWall CJK", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif';
 function text(ctx, value, x, y, maxWidth, size, color, weight = 400) {
   ctx.fillStyle = color;
@@ -23,6 +24,10 @@ const PALETTES = {
 };
 export function renderWall(canvas, input, loadedImages, scale = 1, loadedBackground = null) {
   const project = normalizeProject(input), s = project.settings, mount = project.base;
+  // Keep loaded assets and source indices aligned when library items are excluded.
+  const sourceIndices = project.images.flatMap((item, index) => item.selected ? [index] : []);
+  project.images = sourceIndices.map(index => project.images[index]);
+  loadedImages = sourceIndices.map(index => loadedImages[index]);
   const colors = PALETTES[mount.preset], geometry = composition(project);
   const { box, frame, width: baseWidth, height: baseHeight, textHeight, mat } = geometry;
   const size = dimensions(s, scale);
@@ -41,7 +46,8 @@ export function renderWall(canvas, input, loadedImages, scale = 1, loadedBackgro
     }
   }
   const aspects = loadedImages.map(img => (img.naturalWidth || img.width) / (img.naturalHeight || img.height));
-  const incompatible = incompatibleImages(aspects, project.subject);
+  const manual = placementIndices(project.subject, s.seed, project.images);
+  const incompatible = incompatibleImages(aspects, project.subject, manual);
   if (incompatible.length) throw new Error(`${incompatible.length} 张图片不符合 ${TILE_LABELS[project.subject.tileRatio]}。请更换图片比例或开启「允许裁切」。`);
   const slots = project.subject.tileRatio === 'native'
     ? subjectLayout(project.images.length, box, s, project.subject.shape, aspects, project.subject.granularity, project.subject.repeat, project.subject.count)
@@ -61,7 +67,8 @@ export function renderWall(canvas, input, loadedImages, scale = 1, loadedBackgro
     ctx.fillStyle = colors.mat; ctx.fillRect(left - mat, top - mat, right - left + mat * 2, bottom - top + mat * 2); ctx.restore();
   }
   const tiles = [];
-  for (const slot of slots) {
+  for (const [position, autoSlot] of slots.entries()) {
+    const slot = manual ? { ...autoSlot, index: manual[position] } : autoSlot;
     const item = project.images[slot.index], img = loadedImages[slot.index];
     if (!img) throw new Error(`图片未加载：${item.title}`);
     let tile = slot;
@@ -72,7 +79,7 @@ export function renderWall(canvas, input, loadedImages, scale = 1, loadedBackgro
     const outputTile = { x: x / scale, y: y / scale, w: (right - x) / scale, h: (bottom - y) / scale };
     if (project.subject.crop && project.subject.tileRatio !== 'native') cover(ctx, img, outputTile, item.focusX, item.focusY);
     else ctx.drawImage(img, outputTile.x, outputTile.y, outputTile.w, outputTile.h);
-    tiles.push(tile);
+    tiles.push({ ...tile, index: sourceIndices[slot.index], imageId: item.id });
     if (s.showCaptions) {
       const labelHeight = Math.min(52, tile.h * .24), gradient = ctx.createLinearGradient(0, tile.y + tile.h - labelHeight * 2, 0, tile.y + tile.h);
       gradient.addColorStop(0, '#00000000'); gradient.addColorStop(1, '#000000c9');
